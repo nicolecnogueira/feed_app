@@ -54,7 +54,6 @@ class PostCard extends StatelessWidget {
               Observer(
       builder: (_) => IconButton(
         icon: Icon(
-          // 6. A LÓGICA AGORA FICA AQUI DENTRO, usando o store diretamente
           store.favoritePostIds.contains(post.id)
               ? Icons.star
               : Icons.star_border,
