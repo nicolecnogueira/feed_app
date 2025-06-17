@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:feed_app/repositories/PostRepository.dart';
 import 'package:feed_app/stores/PostsStore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'pages/FavoritesPage.dart';
+import 'pages/HomePage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,26 +14,70 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color corFundo = Color.fromARGB(255, 23, 23, 23);
+    const Color corSuperficie = Color.fromARGB(255, 39, 39, 39);
+    const Color corPrimaria = Color.fromARGB(255, 3, 206, 186);
+    const Color corSecundaria = Color.fromARGB(255, 242, 212, 94);
+    const Color corErro = Color.fromARGB(255, 226, 101, 124);
     return MaterialApp(
       title: 'Feed App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        scaffoldBackgroundColor: corFundo,
+
+        colorScheme: const ColorScheme(
+          brightness: Brightness.dark,
+          primary: corPrimaria,
+          onPrimary: Colors.black,
+          secondary: corSecundaria,
+          onSecondary: Colors.black,
+          error: corErro,
+          onError: Colors.black,
+          surface: corSuperficie,
+          onSurface: Colors.white,
+        ),
+
+        appBarTheme: const AppBarTheme(
+          backgroundColor: corSuperficie,
+          elevation: 2,
+        ),
+
+        cardTheme: CardTheme(
+          color: corSuperficie,
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: corSuperficie,
+          indicatorColor: corPrimaria,
+          labelTextStyle: WidgetStateTextStyle.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(color: corPrimaria, fontWeight: FontWeight.bold);
+            }
+            return TextStyle(color: Colors.white.withAlpha(170));
+          }),
+        ),
+
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.white),
+          titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
-      home: const MyHomePage(),
+      home: const MainPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+class MainPage extends StatefulWidget {
+  const MainPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MainPageState extends State<MainPage> {
   late final PostStore store;
+  int selectedPage = 0;
 
   @override
   void initState() {
@@ -43,27 +88,33 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      HomePage(store: store),
+      FavoritesPage(store: store),
+    ];
+
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text("Home"),
-      ),
-      body: Observer(
-        builder: (_) {
-          if (store.isLoading) {
-            return Center(child: CircularProgressIndicator(),);
-          }
-          return ListView.builder(
-          itemBuilder: (context, index) {
-            final post = store.posts[index];
-            return Card(
-                child: ListTile(
-                  title: Text(post.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text(post.body),
-            ));
+      body: pages[selectedPage],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedPage,
+        onDestinationSelected: (int index) {
+          setState(() {
+            selectedPage = index;
           });
-        } 
-          )
+        },
+        destinations: const <NavigationDestination>[
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.star_border),
+            selectedIcon: Icon(Icons.star),
+            label: 'Favoritos',
+          ),
+        ],
+      ),
     );
   }
 }
